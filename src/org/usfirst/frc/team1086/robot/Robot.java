@@ -7,14 +7,16 @@
 
 package org.usfirst.frc.team1086.robot;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Robot extends TimedRobot {
 	private static final String kDefaultAuto = "Default";
@@ -22,19 +24,34 @@ public class Robot extends TimedRobot {
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 
-	TalonSRX talonFrontRight = new TalonSRX(1);
-	TalonSRX talonBackRight = new TalonSRX(2);
-	Jaguar jaguarFrontLeft = new Jaguar(3);
-	Jaguar jaguarBackLeft = new Jaguar(4);
+	TalonSRX talonFrontRight;
+	TalonSRX talonBackRight;
+	Jaguar jaguarDrive;
 	
-	Joystick leftStick = new Joystick(0);
-    Joystick rightStick = new Joystick(1);
+	Joystick leftStick;
+    Joystick rightStick;
+    
+    Compressor c1;
+    
+    Solenoid shifter;
+    Solenoid intake;
+    
 	
 	@Override
 	public void robotInit() {
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
+		jaguarDrive = new Jaguar(0);
+		talonBackRight = new TalonSRX(1);
+		talonFrontRight = new TalonSRX(2);
+		leftStick = new Joystick(0);
+		rightStick = new Joystick(1);
+		c1 = new Compressor(0);
+		shifter = new Solenoid(0);
+		intake = new Solenoid(1);
+		c1.setClosedLoopControl(true);
+		shifter.set(true);
 	}
 
 
@@ -63,17 +80,21 @@ public class Robot extends TimedRobot {
 	public void drive(double speedLeft, double speedRight) {
 		talonFrontRight.set(ControlMode.PercentOutput, speedRight);
 		talonBackRight.set(ControlMode.PercentOutput, speedRight);
-		jaguarFrontLeft.set(speedLeft);
-		jaguarBackLeft.set(speedLeft);
+		jaguarDrive.set(speedLeft);
 	}
 	
 	@Override
 	public void teleopPeriodic() {
 		if(leftStick.getRawButton(1)) {
-			drive(leftStick.getX(), rightStick.getY());
+			drive(leftStick.getY(), rightStick.getY());
 		}
 		else {
 			drive(0, 0);
+		}
+		if(rightStick.getRawButton(1)) {
+			intake.set(false);
+		} else {
+			intake.set(true);
 		}
 	}
 
